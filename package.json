@@ -4,12 +4,20 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node backend/server.js"
+    "start": "node backend/server",
+    "server": "nodemon backend/server",
+    "arif": "npm start --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run arif\""
   },
   "author": "Arif",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "concurrently": "^6.3.0",
     "dotenv": "^10.0.0",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "express-async-handler": "^1.2.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^6.0.12"
   }
 }
