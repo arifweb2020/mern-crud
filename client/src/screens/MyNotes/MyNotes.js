@@ -1,42 +1,80 @@
-import React, { useEffect, useState } from 'react';
-import MainScreen from '../../components/MainScreen';
+import React, { useEffect } from "react";
 import { Accordion, Badge, Button, Card } from "react-bootstrap";
-import { Link } from 'react-router-dom'
-import axios from 'axios'
+import MainScreen from "../../components/MainScreen";
+import { Link } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteNoteAction, listNotes } from "../../actions/notesActions";
+import Loading from "../../components/Loading";
+import ErrorMessage from "../../components/ErrorMessage";
 
 
-function MyNotes(props) {
+function MyNotes({history,search}) {
 
-    const [notes, setNotes] = useState([])
+    const dispatch = useDispatch();
 
-    const fetchNotes = async () => {
-        // const data = await axios.get('/api/notes');
-        const { data } = await axios.get('/api/notes');
-        console.log(data)
-        setNotes(data)
-    }
-
+    const noteList = useSelector((state) => state.noteList);
+    const { loading, error, notes } = noteList;
+  
+    // const filteredNotes = notes.filter((note) =>
+    //   note.title.toLowerCase().includes(search.toLowerCase())
+    // );
+  
+    const userLogin = useSelector((state) => state.userLogin);
+    const { userInfo } = userLogin;
+  
+    const noteDelete = useSelector((state) => state.noteDelete);
+    const {
+      loading: loadingDelete,
+      error: errorDelete,
+      success: successDelete,
+    } = noteDelete;
+  
+    const noteCreate = useSelector((state) => state.noteCreate);
+    const { success: successCreate } = noteCreate;
+  
+    const noteUpdate = useSelector((state) => state.noteUpdate);
+    const { success: successUpdate } = noteUpdate;
+  
     useEffect(() => {
-        fetchNotes()
-    }, [])
-
+      dispatch(listNotes());
+      if (!userInfo) {
+        history.push("/");
+      }
+    }, [
+      dispatch,
+      history,
+      userInfo,
+      successDelete,
+      successCreate,
+      successUpdate,
+    ]);
+  
     const deleteHandler = (id) => {
-        if (window.confirm("Are you sure?")) {
-            // dispatch(deleteNoteAction(id));
-        }
+      if (window.confirm("Are you sure?")) {
+        dispatch(deleteNoteAction(id));
+      }
     };
-
     return (
-        <MainScreen title="welcome back to my list">
+        <MainScreen title={`Welcome Back ${userInfo && userInfo.name}..`}>
 
             <Link to="/createnote">
                 <Button style={{ marginLeft: 10, marginBottom: 6 }} size="lg">
                     Create new Note
                 </Button>
             </Link>
+            {error && <ErrorMessage variant="danger">{error}</ErrorMessage>}
+      {errorDelete && (
+        <ErrorMessage variant="danger">{errorDelete}</ErrorMessage>
+      )}
+      {loading && <Loading />}
+      {loadingDelete && <Loading />}
             {
-                notes.map((note) => {
+                notes?.reverse()
+                .filter((filteredNote) =>
+            filteredNote.title.toLowerCase().includes(search.toLowerCase())
+          )
+                .map((note) => {
                     return (
                         <Accordion>
                             <Card style={{ margin: 10 }}>
@@ -78,7 +116,10 @@ function MyNotes(props) {
                                             {note.content}
                                         </p>
                                         <footer className="blockquote-footer">
-                                            created on date
+                                        Created on{" "}
+                        <cite title="Source Title">
+                          {note.createdAt.substring(0, 10)}
+                        </cite>
                                         </footer>
                                     </blockquote>
                                 </Card.Body>
